@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Devi Prasad Chinthamreddy — Full-Stack Developer</title>
+<meta name="description" content="Devi Prasad Chinthamreddy — Full-Stack Developer building geospatial-grade web platforms with Python, Flask, React and PostGIS.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #0a1512;
+    --ink-2: #0e1c18;
+    --surface: #12241f;
+    --surface-2: #16302a;
+    --hairline: rgba(127,231,196,0.14);
+    --hairline-strong: rgba(127,231,196,0.28);
+    --contour: #7fe7c4;
+    --contour-dim: rgba(127,231,196,0.45);
+    --route: #ff8a4c;
+    --route-dim: rgba(255,138,76,0.4);
+    --text: #e9f2ee;
+    --text-dim: #9fbeb2;
+    --text-dimmer: #587a70;
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+    --ease: cubic-bezier(.16,.84,.44,1);
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--ink);
+    color:var(--text);
+    font-family:var(--body);
+    line-height:1.6;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--contour); color:var(--ink);}
+
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+
+  :focus-visible{
+    outline:2px solid var(--contour);
+    outline-offset:3px;
+    border-radius:2px;
+  }
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 40px;
+  }
+
+  /* ---------- background contour texture (fixed, whole page) ---------- */
+  .contour-field{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    opacity:.5;
+  }
+  .contour-field svg{
+    width:100%;
+    height:100%;
+  }
+  .contour-field path{
+    fill:none;
+    stroke:var(--contour);
+    stroke-width:1;
+  }
+  .grain{
+    position:fixed;
+    inset:0;
+    z-index:1;
+    pointer-events:none;
+    opacity:.03;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- nav ---------- */
+  header{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:100;
+    background:rgba(10,21,18,0.72);
+    backdrop-filter:blur(14px) saturate(140%);
+    border-bottom:1px solid var(--hairline);
+  }
+  nav{
+    max-width:1180px;
+    margin:0 auto;
+    padding:18px 40px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .logo{
+    font-family:var(--mono);
+    font-size:14px;
+    letter-spacing:.08em;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--text);
+  }
+  .logo .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--route);
+    box-shadow:0 0 0 4px rgba(255,138,76,.15);
+    animation:pulseDot 2.6s ease-in-out infinite;
+  }
+  .nav-links{
+    display:flex;
+    gap:36px;
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+  }
+  .nav-links a{
+    color:var(--text-dimmer);
+    position:relative;
+    padding-bottom:4px;
+    transition:color .3s var(--ease);
+  }
+  .nav-links a::after{
+    content:"";
+    position:absolute; left:0; bottom:0;
+    width:0; height:1px;
+    background:var(--contour);
+    transition:width .35s var(--ease);
+  }
+  .nav-links a:hover, .nav-links a.active{color:var(--text);}
+  .nav-links a.active::after{width:100%;}
+  .nav-toggle{display:none;}
+
+  /* ---------- scroll route track (desktop) ---------- */
+  .route-track{
+    position:fixed;
+    left:40px;
+    top:100px;
+    bottom:100px;
+    width:1px;
+    background:linear-gradient(to bottom, transparent, var(--hairline-strong) 8%, var(--hairline-strong) 92%, transparent);
+    z-index:60;
+  }
+  .route-fill{
+    position:absolute;
+    left:0; top:0;
+    width:100%;
+    height:0%;
+    background:linear-gradient(to bottom, var(--route), var(--contour));
+    transition:height .1s linear;
+  }
+  @media (max-width:1000px){ .route-track{display:none;} }
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:140px 0 80px;
+    z-index:2;
+  }
+  .hero-inner{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 40px;
+    width:100%;
+  }
+  .coord-stamp{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.14em;
+    color:var(--contour);
+    text-transform:uppercase;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:28px;
+    opacity:0;
+    animation:fadeUp .9s var(--ease) .1s forwards;
+  }
+  .coord-stamp .pin{
+    width:14px; height:14px;
+    animation:pinDrop .9s var(--ease) .05s both;
+  }
+  .hero h1{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:clamp(2.6rem, 7.2vw, 5.6rem);
+    line-height:.98;
+    letter-spacing:-.01em;
+    text-transform:uppercase;
+    opacity:0;
+    animation:fadeUp 1s var(--ease) .22s forwards;
+  }
+  .hero h1 span{
+    display:block;
+    color:transparent;
+    -webkit-text-stroke:1.5px var(--text-dim);
+  }
+  .hero .role{
+    font-family:var(--display);
+    font-size:clamp(1.15rem, 2.4vw, 1.6rem);
+    color:var(--text-dim);
+    margin-top:22px;
+    max-width:640px;
+    opacity:0;
+    animation:fadeUp 1s var(--ease) .38s forwards;
+  }
+  .hero .role em{
+    font-style:normal;
+    color:var(--contour);
+  }
+  .hero p.lede{
+    margin-top:22px;
+    max-width:560px;
+    color:var(--text-dimmer);
+    font-size:15.5px;
+    opacity:0;
+    animation:fadeUp 1s var(--ease) .5s forwards;
+  }
+  .status-line{
+    margin-top:38px;
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--text-dimmer);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    opacity:0;
+    animation:fadeUp 1s var(--ease) .62s forwards;
+  }
+  .status-line .blink{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--contour);
+    animation:pulseDot 1.6s ease-in-out infinite;
+  }
+  .hero-cta{
+    margin-top:44px;
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+    opacity:0;
+    animation:fadeUp 1s var(--ease) .74s forwards;
+  }
+  .btn{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    padding:14px 26px;
+    border-radius:2px;
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    transition:transform .35s var(--ease), background .35s var(--ease), border-color .35s var(--ease), color .35s var(--ease);
+  }
+  .btn-primary{
+    background:var(--contour);
+    color:var(--ink);
+    border:1px solid var(--contour);
+  }
+  .btn-primary:hover{transform:translateY(-3px); box-shadow:0 12px 30px rgba(127,231,196,.18);}
+  .btn-ghost{
+    border:1px solid var(--hairline-strong);
+    color:var(--text-dim);
+  }
+  .btn-ghost:hover{border-color:var(--contour); color:var(--contour); transform:translateY(-3px);}
+
+  .scroll-cue{
+    position:absolute;
+    bottom:34px; left:50%;
+    transform:translateX(-50%);
+    display:flex; flex-direction:column; align-items:center;
+    gap:8px;
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.16em;
+    color:var(--text-dimmer);
+    text-transform:uppercase;
+    opacity:0;
+    animation:fadeUp 1s var(--ease) 1s forwards;
+  }
+  .scroll-cue .line{width:1px; height:34px; background:linear-gradient(var(--contour), transparent); animation:scrollLine 1.8s ease-in-out infinite;}
+
+  /* ---------- generic sections ---------- */
+  section{
+    position:relative;
+    z-index:2;
+    padding:130px 0;
+    border-bottom:1px solid var(--hairline);
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--route);
+    display:flex; align-items:center; gap:12px;
+    margin-bottom:20px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:22px; height:1px;
+    background:var(--route);
+  }
+  h2.title{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:clamp(1.8rem, 3.6vw, 2.7rem);
+    text-transform:uppercase;
+    letter-spacing:-.01em;
+    margin-bottom:44px;
+    max-width:720px;
+  }
+
+  .reveal{
+    opacity:0;
+    transform:translateY(28px);
+    transition:opacity .8s var(--ease), transform .8s var(--ease);
+  }
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  /* ---------- about ---------- */
+  .about-grid{
+    display:grid;
+    grid-template-columns:1.3fr .9fr;
+    gap:60px;
+    align-items:start;
+  }
+  .about-grid p{
+    color:var(--text-dim);
+    font-size:16.5px;
+    max-width:560px;
+  }
+  .about-grid p + p{margin-top:18px;}
+  .stat-panel{
+    border:1px solid var(--hairline);
+    border-radius:4px;
+    background:linear-gradient(160deg, var(--surface), var(--ink-2));
+    padding:6px;
+  }
+  .stat-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px 22px;
+    border-bottom:1px solid var(--hairline);
+  }
+  .stat-row:last-child{border-bottom:none;}
+  .stat-row .label{
+    font-family:var(--mono);
+    font-size:11.5px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--text-dimmer);
+  }
+  .stat-row .value{
+    font-family:var(--display);
+    font-size:1.15rem;
+    color:var(--contour);
+  }
+
+  /* ---------- layers / skills ---------- */
+  .layers{
+    display:flex;
+    flex-direction:column;
+    gap:1px;
+    background:var(--hairline);
+    border:1px solid var(--hairline);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .layer{
+    background:var(--surface);
+    padding:22px 26px;
+    display:grid;
+    grid-template-columns:210px 1fr;
+    gap:24px;
+    align-items:start;
+    transition:background .3s var(--ease);
+  }
+  .layer:hover{background:var(--surface-2);}
+  .layer-head{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .layer-dot{
+    width:9px; height:9px; border-radius:2px;
+    background:var(--contour);
+    flex:none;
+    box-shadow:0 0 0 3px rgba(127,231,196,.12);
+  }
+  .layer-head span{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+  }
+  .chip-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .chip{
+    font-family:var(--mono);
+    font-size:12.5px;
+    padding:7px 13px;
+    border:1px solid var(--hairline-strong);
+    border-radius:2px;
+    color:var(--text);
+    transition:all .3s var(--ease);
+  }
+  .chip:hover{
+    border-color:var(--contour);
+    color:var(--contour);
+    transform:translateY(-2px);
+  }
+  @media (max-width:700px){
+    .layer{grid-template-columns:1fr;}
+  }
+
+  /* ---------- projects ---------- */
+  .projects-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:26px;
+  }
+  @media (max-width:860px){ .projects-grid{grid-template-columns:1fr;} }
+
+  .pin-card{
+    position:relative;
+    border:1px solid var(--hairline);
+    border-radius:6px;
+    padding:32px 30px 28px;
+    background:linear-gradient(165deg, var(--surface) 0%, var(--ink-2) 100%);
+    overflow:hidden;
+    transition:transform .45s var(--ease), border-color .45s var(--ease), box-shadow .45s var(--ease);
+  }
+  .pin-card::before{
+    content:"";
+    position:absolute; inset:0;
+    background:
+      linear-gradient(var(--hairline) 1px, transparent 1px) 0 0/100% 34px,
+      linear-gradient(90deg, var(--hairline) 1px, transparent 1px) 0 0/34px 100%;
+    opacity:.25;
+    pointer-events:none;
+  }
+  .pin-card:hover{
+    transform:translateY(-6px);
+    border-color:var(--hairline-strong);
+    box-shadow:0 24px 50px rgba(0,0,0,.35);
+  }
+  .pin-card .ptag{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--route);
+    margin-bottom:14px;
+  }
+  .pin-card .ptag svg{width:12px;height:12px;}
+  .pin-card h3{
+    position:relative;
+    font-family:var(--display);
+    font-size:1.5rem;
+    text-transform:uppercase;
+    margin-bottom:16px;
+    letter-spacing:.01em;
+  }
+  .pin-card .field{
+    position:relative;
+    margin-bottom:14px;
+  }
+  .pin-card .field .k{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--text-dimmer);
+    margin-bottom:5px;
+  }
+  .pin-card .field .v{
+    color:var(--text-dim);
+    font-size:14.5px;
+    line-height:1.55;
+  }
+  .stack-row{
+    position:relative;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:18px;
+    padding-top:18px;
+    border-top:1px solid var(--hairline);
+  }
+  .stack-row span{
+    font-family:var(--mono);
+    font-size:11px;
+    padding:5px 10px;
+    border:1px solid var(--hairline-strong);
+    border-radius:2px;
+    color:var(--text-dim);
+  }
+
+  /* ---------- route / journey ---------- */
+  .journey{
+    position:relative;
+    padding-left:52px;
+  }
+  .journey svg.trail{
+    position:absolute;
+    left:0; top:6px; bottom:6px;
+    width:24px;
+  }
+  .journey svg.trail path{
+    fill:none;
+    stroke:var(--contour-dim);
+    stroke-width:2;
+    stroke-dasharray:400;
+    stroke-dashoffset:400;
+    transition:stroke-dashoffset 1.6s var(--ease);
+  }
+  .journey.in svg.trail path{stroke-dashoffset:0;}
+  .waypoint{
+    position:relative;
+    padding-bottom:56px;
+  }
+  .waypoint:last-child{padding-bottom:0;}
+  .waypoint .node{
+    position:absolute;
+    left:-52px; top:2px;
+    width:24px; height:24px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .waypoint .node .core{
+    width:10px; height:10px; border-radius:50%;
+    background:var(--ink);
+    border:2px solid var(--contour-dim);
+    transition:all .5s var(--ease);
+  }
+  .journey.in .waypoint .core{
+    background:var(--contour);
+    border-color:var(--contour);
+    box-shadow:0 0 0 5px rgba(127,231,196,.14);
+  }
+  .waypoint.current .core{
+    background:var(--route) !important;
+    border-color:var(--route) !important;
+    box-shadow:0 0 0 5px rgba(255,138,76,.16) !important;
+    animation:pulseDot 1.8s ease-in-out infinite;
+  }
+  .waypoint .when{
+    font-family:var(--mono);
+    font-size:11.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--route);
+    margin-bottom:8px;
+  }
+  .waypoint.edu .when{color:var(--contour);}
+  .waypoint h3{
+    font-family:var(--display);
+    font-size:1.35rem;
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  .waypoint .org{
+    color:var(--text-dim);
+    font-size:14.5px;
+    margin-bottom:14px;
+  }
+  .waypoint ul{
+    display:flex; flex-direction:column; gap:9px;
+  }
+  .waypoint ul li{
+    position:relative;
+    padding-left:18px;
+    color:var(--text-dim);
+    font-size:14.5px;
+    line-height:1.6;
+  }
+  .waypoint ul li::before{
+    content:"";
+    position:absolute; left:0; top:9px;
+    width:5px; height:5px;
+    background:var(--contour-dim);
+  }
+  .waypoint .meta{
+    display:flex; gap:18px; flex-wrap:wrap;
+    margin-top:14px;
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--text-dimmer);
+  }
+
+  /* ---------- contact ---------- */
+  .contact-grid{
+    display:grid;
+    grid-template-columns:1.1fr .9fr;
+    gap:60px;
+  }
+  .contact-grid h2.title{margin-bottom:22px;}
+  .contact-grid > div > p{
+    color:var(--text-dim);
+    max-width:480px;
+    margin-bottom:36px;
+    font-size:16px;
+  }
+  .contact-links{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .contact-links a{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 4px;
+    border-bottom:1px solid var(--hairline);
+    font-family:var(--mono);
+    font-size:14px;
+    color:var(--text-dim);
+    transition:color .3s var(--ease), padding-left .3s var(--ease);
+  }
+  .contact-links a:hover{color:var(--contour); padding-left:10px;}
+  .contact-links a .arrow{opacity:0; transition:opacity .3s var(--ease);}
+  .contact-links a:hover .arrow{opacity:1;}
+  .lang-panel{
+    border:1px solid var(--hairline);
+    border-radius:4px;
+    padding:28px;
+    background:linear-gradient(160deg, var(--surface), var(--ink-2));
+    height:fit-content;
+  }
+  .lang-panel .eyebrow{margin-bottom:18px;}
+  .lang-panel .chip-row{margin-bottom:0;}
+
+  footer{
+    padding:36px 0;
+    position:relative; z-index:2;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:14px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--text-dimmer);
+    letter-spacing:.04em;
+  }
+
+  /* ---------- keyframes ---------- */
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(22px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes pinDrop{ from{opacity:0; transform:translateY(-14px) scale(.7);} to{opacity:1; transform:translateY(0) scale(1);} }
+  @keyframes pulseDot{ 0%,100%{opacity:1; transform:scale(1);} 50%{opacity:.45; transform:scale(1.3);} }
+  @keyframes scrollLine{ 0%{transform:scaleY(0); transform-origin:top;} 45%{transform:scaleY(1); transform-origin:top;} 55%{transform:scaleY(1); transform-origin:bottom;} 100%{transform:scaleY(0); transform-origin:bottom;} }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+    .reveal{opacity:1; transform:none;}
+  }
+
+  /* ---------- mobile nav ---------- */
+  @media (max-width:800px){
+    .wrap, .hero-inner{padding-left:24px; padding-right:24px;}
+    section{padding:90px 0;}
+    .about-grid, .contact-grid{grid-template-columns:1fr; gap:36px;}
+    .nav-links{
+      position:fixed;
+      top:0; right:0;
+      height:100vh;
+      width:min(78vw, 320px);
+      background:var(--ink-2);
+      border-left:1px solid var(--hairline);
+      flex-direction:column;
+      justify-content:center;
+      align-items:flex-start;
+      padding:0 40px;
+      gap:26px;
+      transform:translateX(100%);
+      transition:transform .5s var(--ease);
+    }
+    .nav-links.open{transform:translateX(0);}
+    .nav-toggle{
+      display:flex;
+      flex-direction:column;
+      gap:5px;
+      background:none; border:none;
+      cursor:pointer;
+      z-index:200;
+      padding:6px;
+    }
+    .nav-toggle span{
+      width:22px; height:1.5px; background:var(--text);
+      transition:transform .3s var(--ease), opacity .3s var(--ease);
+    }
+    .nav-toggle.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg);}
+    .nav-toggle.open span:nth-child(2){opacity:0;}
+    .nav-toggle.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg);}
+  }
+</style>
+</head>
+<body>
+
+<div class="contour-field" id="contourField">
+  <svg viewBox="0 0 1600 1200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g id="contourGroup"></g>
+  </svg>
+</div>
+<div class="grain"></div>
+<div class="route-track"><div class="route-fill" id="routeFill"></div></div>
+
+<header>
+  <nav>
+    <a href="#hero" class="logo"><span class="dot"></span> DPC · TIRUPATI</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#about" data-nav>About</a></li>
+      <li><a href="#layers" data-nav>Layers</a></li>
+      <li><a href="#projects" data-nav>Projects</a></li>
+      <li><a href="#route" data-nav>Route</a></li>
+      <li><a href="#contact" data-nav>Contact</a></li>
+    </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero" id="hero" style="border-bottom:1px solid var(--hairline);">
+    <div class="hero-inner">
+      <div class="coord-stamp">
+        <svg class="pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.4"/></svg>
+        13.6288°N · 79.4192°E — TIRUPATI, ANDHRA PRADESH
+      </div>
+      <h1>DEVI PRASAD<br><span>CHINTHAMREDDY</span></h1>
+      <p class="role">Full-Stack Developer building <em>geospatial-grade</em> web platforms.</p>
+      <p class="lede">Computer Science graduate (AIML) working across Python, Flask, FastAPI, React and PostGIS — turning scattered data and maps into products people can actually navigate.</p>
+      <div class="status-line"><span class="blink"></span> STATUS: Full-Stack Developer @ IIT Tirupati Navavishkar I-Hub Foundation</div>
+      <div class="hero-cta">
+        <a href="#projects" class="btn btn-primary">View Projects</a>
+        <a href="mailto:cdpreddyap@gmail.com" class="btn btn-ghost">Get in Touch</a>
+      </div>
+    </div>
+    <div class="scroll-cue"><span>Scroll</span><span class="line"></span></div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="wrap">
+      <div class="eyebrow">Field Notes</div>
+      <h2 class="title reveal">Summary</h2>
+      <div class="about-grid">
+        <div class="reveal">
+          <p>Motivated Computer Science student with a strong footing in Python, web development and problem-solving — currently building full-stack, geospatial-heavy applications for real-world users, from pilgrims planning routes to agencies publishing map layers.</p>
+          <p>Comfortable across the stack: Flask and FastAPI on the backend, React on the front, PostgreSQL/PostGIS underneath, and increasingly fluent in AI-assisted development workflows (Cursor, Claude, ChatGPT) to move fast without cutting corners.</p>
+        </div>
+        <div class="stat-panel reveal">
+          <div class="stat-row"><span class="label">Degree</span><span class="value">B.Tech · CSE (AIML)</span></div>
+          <div class="stat-row"><span class="label">CGPA</span><span class="value">7.06</span></div>
+          <div class="stat-row"><span class="label">Shipped Projects</span><span class="value">02</span></div>
+          <div class="stat-row"><span class="label">Currently</span><span class="value">Full-Stack Dev</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LAYERS / SKILLS -->
+  <section id="layers">
+    <div class="wrap">
+      <div class="eyebrow">Map Legend</div>
+      <h2 class="title reveal">Layers I work with</h2>
+      <div class="layers reveal">
+        <div class="layer">
+          <div class="layer-head"><span class="layer-dot"></span><span>Languages</span></div>
+          <div class="chip-row"><span class="chip">Python</span><span class="chip">JavaScript</span></div>
+        </div>
+        <div class="layer">
+          <div class="layer-head"><span class="layer-dot"></span><span>Web Technologies</span></div>
+          <div class="chip-row"><span class="chip">HTML5</span><span class="chip">CSS</span><span class="chip">React.js</span></div>
+        </div>
+        <div class="layer">
+          <div class="layer-head"><span class="layer-dot"></span><span>Backend</span></div>
+          <div class="chip-row"><span class="chip">Flask</span><span class="chip">FastAPI</span><span class="chip">REST APIs</span></div>
+        </div>
+        <div class="layer">
+          <div class="layer-head"><span class="layer-dot"></span><span>Data</span></div>
+          <div class="chip-row"><span class="chip">SQL</span><span class="chip">PostgreSQL</span></div>
+        </div>
+        <div class="layer">
+          <div class="layer-head"><span class="layer-dot"></span><span>Tooling</span></div>
+          <div class="chip-row"><span class="chip">Docker</span><span class="chip">Git &amp; GitHub</span></div>
+        </div>
+        <div class="layer">
+          <div class="layer-head"><span class="layer-dot"></span><span>AI-Assisted Dev</span></div>
+          <div class="chip-row"><span class="chip">Cursor</span><span class="chip">Antigravity</span><span class="chip">Claude AI</span><span class="chip">ChatGPT</span><span class="chip">Stitch</span></div>
+        </div>
+        <div class="layer">
+          <div class="layer-head"><span class="layer-dot"></span><span>Working Style</span></div>
+          <div class="chip-row"><span class="chip">Communication</span><span class="chip">Problem-Solving</span><span class="chip">Teamwork &amp; Collaboration</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <div class="wrap">
+      <div class="eyebrow">Pins on the Map</div>
+      <h2 class="title reveal">Projects</h2>
+      <div class="projects-grid">
+
+        <article class="pin-card reveal">
+          <div class="ptag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.4"/></svg>
+            PIN · 01
+          </div>
+          <h3>Geo Trip Planner</h3>
+          <div class="field"><div class="k">Problem</div><div class="v">Pilgrims struggle to plan multi-stop Tirupati trips, pick the right budget tier, and track temple visits without a simple digital flow.</div></div>
+          <div class="field"><div class="k">Solution</div><div class="v">Budget-based packages, a place picker, an interactive route map, personal temple QR check-in, and an admin visit dashboard.</div></div>
+          <div class="field"><div class="k">Outcome</div><div class="v">Users plan trips faster and share routes on the map; staff scan QR codes to log visits, and admins see visitor data in one place.</div></div>
+          <div class="stack-row">
+            <span>Flask</span><span>HTML/CSS/JS</span><span>Leaflet</span><span>PostgreSQL/SQLite</span><span>OSRM</span><span>Session Auth</span>
+          </div>
+        </article>
+
+        <article class="pin-card reveal">
+          <div class="ptag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.4"/></svg>
+            PIN · 02
+          </div>
+          <h3>Geo Intel Meta Hub</h3>
+          <div class="field"><div class="k">Problem</div><div class="v">Scattered geospatial data — vectors, rasters, LAS, 3D — is hard to store, publish and view in one place.</div></div>
+          <div class="field"><div class="k">Solution</div><div class="v">A Flask app that uploads files into PostGIS + GeoServer, surfaced through a web UI for search, maps and 3D viewing.</div></div>
+          <div class="field"><div class="k">Outcome</div><div class="v">A central catalog with WMS/WFS support (plus rasters and 3D) so users can discover, preview and serve layers from one platform.</div></div>
+          <div class="stack-row">
+            <span>Flask</span><span>PostGIS</span><span>GeoServer</span><span>GDAL/PDAL</span><span>ogr2ogr</span><span>Cesium</span>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ROUTE / EXPERIENCE + EDUCATION -->
+  <section id="route">
+    <div class="wrap">
+      <div class="eyebrow">Route Log</div>
+      <h2 class="title reveal">Experience &amp; Education</h2>
+
+      <div class="journey reveal">
+        <svg class="trail" viewBox="0 0 24 200" preserveAspectRatio="none"><path d="M12 0 L12 200"/></svg>
+
+        <div class="waypoint edu">
+          <div class="node"><div class="core"></div></div>
+          <div class="when">2021 — 2025</div>
+          <h3>B.Tech · CSE (AIML)</h3>
+          <div class="org">Malla Reddy Engineering College, Hyderabad, India</div>
+          <div class="meta"><span>CGPA: 7.06</span></div>
+        </div>
+
+        <div class="waypoint current">
+          <div class="node"><div class="core"></div></div>
+          <div class="when">Nov 2025 — Present</div>
+          <h3>Full-Stack Developer</h3>
+          <div class="org">IIT Tirupati Navavishkar I-Hub Foundation (IITTNiF)</div>
+          <ul>
+            <li>Developed and maintained full-stack web applications using Python, Flask, FastAPI, React.js, HTML, CSS and JavaScript — including REST API design and PostgreSQL integration with efficient SQL queries.</li>
+            <li>Built responsive, user-friendly interfaces ensuring cross-device compatibility and a smooth user experience.</li>
+            <li>Used Git and GitHub for version control, collaborative development and effective code management.</li>
+            <li>Participated in the full software development lifecycle — requirement analysis, development, testing, debugging, optimization, deployment and team collaboration.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" style="border-bottom:none;">
+    <div class="wrap">
+      <div class="contact-grid">
+        <div>
+          <div class="eyebrow">Transmit</div>
+          <h2 class="title reveal">Let's build something worth mapping</h2>
+          <p class="reveal">Open to full-stack and geospatial-development opportunities. Based in Tirupati, Andhra Pradesh — happy to work remote or on-site.</p>
+          <div class="contact-links reveal">
+            <a href="mailto:cdpreddyap@gmail.com"><span>cdpreddyap@gmail.com</span><span class="arrow">→</span></a>
+            <a href="tel:+916281604440"><span>+91 62816 04440</span><span class="arrow">→</span></a>
+            <a href="https://github.com/deviprasad101" target="_blank" rel="noopener"><span>github.com/deviprasad101</span><span class="arrow">→</span></a>
+            <a href="https://linkedin.com/in/deviprasad-reddy-chinthamreddy" target="_blank" rel="noopener"><span>Deviprasad Reddy Chinthamreddy</span><span class="arrow">→</span></a>
+          </div>
+        </div>
+        <div class="lang-panel reveal">
+          <div class="eyebrow" style="margin-bottom:14px;">Languages Known</div>
+          <div class="chip-row">
+            <span class="chip">English</span>
+            <span class="chip">Telugu</span>
+          </div>
+          <div class="eyebrow" style="margin:26px 0 14px;">Location</div>
+          <p style="color:var(--text-dim); font-size:14px;">Arlapadu, Pellakuru,<br>Tirupati, Andhra Pradesh, India</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; width:100%;">
+    <span>© 2026 DEVI PRASAD CHINTHAMREDDY</span>
+    <span>BUILT WITH PYTHON, FLASK, REACT &amp; A LOT OF COFFEE</span>
+  </div>
+</footer>
+
+<script>
+  // ---------- generate contour lines ----------
+  (function(){
+    const group = document.getElementById('contourGroup');
+    const rows = 14;
+    let svgHTML = '';
+    for(let i=0;i<rows;i++){
+      const y = 40 + i * 88 + (Math.random()*20-10);
+      const amp = 30 + Math.random()*50;
+      const opacity = (0.05 + Math.random()*0.18).toFixed(2);
+      let d = `M -50 ${y} `;
+      let x = -50;
+      let toggle = 1;
+      while(x < 1650){
+        const nx = x + 120 + Math.random()*60;
+        const ny = y + toggle * amp * (0.5 + Math.random()*0.6);
+        d += `Q ${(x+nx)/2} ${ny} ${nx} ${y} `;
+        x = nx;
+        toggle *= -1;
+      }
+      svgHTML += `<path d="${d}" style="opacity:${opacity}"/>`;
+    }
+    group.innerHTML = svgHTML;
+  })();
+
+  // ---------- parallax drift on scroll ----------
+  const field = document.getElementById('contourField');
+  let ticking = false;
+  function onScroll(){
+    const y = window.scrollY;
+    if(!ticking){
+      window.requestAnimationFrame(()=>{
+        field.style.transform = `translateY(${y * -0.04}px)`;
+        const doc = document.documentElement;
+        const max = doc.scrollHeight - window.innerHeight;
+        const pct = max > 0 ? Math.min(100, (y / max) * 100) : 0;
+        const fill = document.getElementById('routeFill');
+        if(fill) fill.style.height = pct + '%';
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  // ---------- reveal on scroll ----------
+  const revealEls = document.querySelectorAll('.reveal, .journey');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        entry.target.classList.add('in');
+      }
+    });
+  }, {threshold:0.15});
+  revealEls.forEach(el=>io.observe(el));
+
+  // ---------- active nav link ----------
+  const sections = document.querySelectorAll('main section[id]');
+  const navLinks = document.querySelectorAll('[data-nav]');
+  const navObs = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      const id = entry.target.getAttribute('id');
+      const link = document.querySelector(`[data-nav][href="#${id}"]`);
+      if(entry.isIntersecting){
+        navLinks.forEach(l=>l.classList.remove('active'));
+        if(link) link.classList.add('active');
+      }
+    });
+  }, {rootMargin:'-45% 0px -45% 0px'});
+  sections.forEach(s=>navObs.observe(s));
+
+  // ---------- mobile menu ----------
+  const toggle = document.getElementById('navToggle');
+  const links = document.getElementById('navLinks');
+  toggle.addEventListener('click', ()=>{
+    toggle.classList.toggle('open');
+    links.classList.toggle('open');
+  });
+  links.querySelectorAll('a').forEach(a=>{
+    a.addEventListener('click', ()=>{
+      toggle.classList.remove('open');
+      links.classList.remove('open');
+    });
+  });
+
+  // ---------- mouse parallax on hero pin ----------
+  const hero = document.getElementById('hero');
+  hero.addEventListener('mousemove', (e)=>{
+    const x = (e.clientX / window.innerWidth - 0.5) * 10;
+    const y = (e.clientY / window.innerHeight - 0.5) * 10;
+    field.style.transform += ` translate(${x}px, ${y}px)`;
+  });
+</script>
+
+</body>
+</html>
